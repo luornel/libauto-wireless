@@ -3,7 +3,7 @@ name: Build LibAuto Wireless Test
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, feature/native-aa-bootstrap ]
 
 jobs:
   build:
@@ -50,6 +50,19 @@ jobs:
           if old not in ms:
               raise SystemExit("Could not find wireless status UI")
           main.write_text(ms.replace(old, new, 1))
+          controller = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt")
+          wc = controller.read_text()
+          old_ble = '        if (startBleGattServer()) {\n            startBleAdvertising(adapter)\n        } else {\n            bleAdvertiseBroken = true\n            logger("Wireless BLE advertise skipped: GATT server unavailable")\n        }'
+          new_ble = '        logger("Native AA bootstrap: classic Bluetooth SDP/RFCOMM mode; BLE advertising disabled")'
+          if old_ble not in wc:
+              raise SystemExit("Could not find BLE bootstrap block")
+          wc = wc.replace(old_ble, new_ble, 1)
+          old_loop = '        for (endpoint in AA_WIRELESS_ENDPOINTS) {\n            val worker = Thread({\n                listenForBluetoothClient(adapter, endpoint, ssid, password, bssid, port, dynamicAp)\n            }, "LibAuto-WirelessBootstrap-\${endpoint.label}")\n            workers += worker\n            worker.start()\n        }\n        startOutboundBluetoothBootstrap(adapter, ssid, password, bssid, port, dynamicAp)'
+          new_loop = '        val endpoint = AA_WIRELESS_ENDPOINTS.first { it.label == "openauto-secure" }\n        logger("Native AA bootstrap: canonical SDP service active; waiting for phone-initiated RFCOMM")\n        val worker = Thread({ listenForBluetoothClient(adapter, endpoint, ssid, password, bssid, port, dynamicAp) }, "LibAuto-NativeAaBootstrap")\n        workers += worker\n        worker.start()'
+          if old_loop not in wc:
+              raise SystemExit("Could not find RFCOMM bootstrap block")
+          wc = wc.replace(old_loop, new_loop, 1)
+          controller.write_text(wc)
           p.write_text(s2)
           gradle.write_text(g2)
           print("Wireless card exposed; 32-bit ABI selected; diagnostics enabled.")
@@ -58,8 +71,8 @@ jobs:
         run: |
           echo "=== MainActivity wireless diagnostics patch ==="
           grep -n -A4 -B4 'status == "diagnostic"' LibAuto/app/src/main/java/com/example/androidautodisplay/MainActivity.kt
-          echo "=== Wireless controller remains upstream ==="
-          grep -n -A3 -B3 'if (bondedDevices.isEmpty())' LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt
+          echo "=== Native AA bootstrap patch ==="
+          grep -n -A8 -B4 'Native AA bootstrap' LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
