@@ -38,22 +38,11 @@ jobs:
               raise SystemExit("Could not narrow ABI filters for CI build")
           service = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/ProjectionService.kt")
           ps = service.read_text()
-          old = '''        wirelessController = WirelessAaController(this) { message ->
-            appendUsbLog(message)
-            LogFileHelper.appendEvent(this, "WirelessAa", message)
-        }'''
-          new = '''        wirelessController = WirelessAaController(this) { message ->
-            appendUsbLog(message)
-            LogFileHelper.appendEvent(this, "WirelessAa", message)
-            sendBroadcast(IntentBuilder.wirelessStatus("diagnostic", message))
-        }'''
-          if old not in ps:
-              raise SystemExit("Could not find WirelessAaController logger")
-          service.write_text(ps.replace(old, new, 1))
-
-          # Keep diagnostics passive here. The service logger above mirrors the
-          # controller's existing wireless events to the on-screen status without
-          # modifying WirelessAaController state or protocol behavior.
+          needle = '            LogFileHelper.appendEvent(this, "WirelessAa", message)'
+          replacement = needle + '\n            sendBroadcast(IntentBuilder.wirelessStatus("diagnostic", message))'
+          if needle not in ps:
+              raise SystemExit("Could not find WirelessAa logger")
+          service.write_text(ps.replace(needle, replacement, 1))
           p.write_text(s2)
           gradle.write_text(g2)
           print("Wireless card exposed; 32-bit ABI selected; diagnostics enabled.")
