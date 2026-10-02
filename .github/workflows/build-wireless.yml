@@ -1,0 +1,66 @@
+name: Build LibAuto Wireless Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test repository
+        uses: actions/checkout@v4
+
+      - name: Checkout LibAuto upstream
+        uses: actions/checkout@v4
+        with:
+          repository: stf-ftw/LibAuto
+          path: LibAuto
+
+      - name: Expose experimental Wireless Android Auto card
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path("LibAuto/app/src/main/res/layout/activity_main.xml")
+          s = p.read_text()
+          pat = r'(<LinearLayout\s+android:id="@\+id/wireless_card"[\s\S]*?)(android:visibility=")gone(")'
+          s2, n = re.subn(pat, r'\1\2visible\3', s, count=1)
+          if n != 1:
+              raise SystemExit("Could not find hidden wireless_card")
+          p.write_text(s2)
+          print("Wireless card exposed.")
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;25.1.8937393"
+
+      - name: Build installable compatibility debug APK
+        working-directory: LibAuto
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleCompatibilityDebug --stacktrace
+
+      - name: Collect APK
+        run: |
+          mkdir -p output
+          APK=$(find LibAuto/app/build/outputs/apk/compatibility/debug -name "*.apk" | head -n 1)
+          test -n "$APK"
+          cp "$APK" output/LibAuto-wireless-test.apk
+          ls -lh output/
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LibAuto-wireless-test
+          path: output/LibAuto-wireless-test.apk
+          if-no-files-found: error
