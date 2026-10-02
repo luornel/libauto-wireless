@@ -30,11 +30,14 @@ jobs:
           s2, n = re.subn(pat, r'\1\2visible\3', s, count=1)
           if n != 1:
               raise SystemExit("Could not find hidden wireless_card")
-          abi_pat = r'abiFilters\s+"armeabi-v7a",\s+"arm64-v8a"'
-          s3, n2 = re.subn(abi_pat, 'abiFilters "arm64-v8a"', s2, count=1)
+          gradle = Path("LibAuto/app/build.gradle")
+          g = gradle.read_text()
+          abi_pat = r'abiFilters\s+"armeabi-v7a",\s*"arm64-v8a"'
+          g2, n2 = re.subn(abi_pat, 'abiFilters "arm64-v8a"', g, count=1)
           if n2 != 1:
               raise SystemExit("Could not narrow ABI filters for CI build")
-          p.write_text(s3)
+          p.write_text(s2)
+          gradle.write_text(g2)
           print("Wireless card exposed.")
 
       - name: Set up JDK 17
