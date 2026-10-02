@@ -57,7 +57,7 @@ jobs:
           if old_ble not in wc:
               raise SystemExit("Could not find BLE bootstrap block")
           wc = wc.replace(old_ble, new_ble, 1)
-          old_loop = '        for (endpoint in AA_WIRELESS_ENDPOINTS) {\n            val worker = Thread({\n                listenForBluetoothClient(adapter, endpoint, ssid, password, bssid, port, dynamicAp)\n            }, "LibAuto-WirelessBootstrap-\${endpoint.label}")\n            workers += worker\n            worker.start()\n        }\n        startOutboundBluetoothBootstrap(adapter, ssid, password, bssid, port, dynamicAp)'
+          old_loop = '        for (endpoint in AA_WIRELESS_ENDPOINTS) {\n            val worker = Thread({\n                listenForBluetoothClient(adapter, endpoint, ssid, password, bssid, port, dynamicAp)\n            }, "LibAuto-WirelessBootstrap-${endpoint.label}")\n            workers += worker\n            worker.start()\n        }\n        startOutboundBluetoothBootstrap(adapter, ssid, password, bssid, port, dynamicAp)'
           new_loop = '        val endpoint = AA_WIRELESS_ENDPOINTS.first { it.label == "openauto-secure" }\n        logger("Native AA bootstrap: canonical SDP service active; waiting for phone-initiated RFCOMM")\n        val worker = Thread({ listenForBluetoothClient(adapter, endpoint, ssid, password, bssid, port, dynamicAp) }, "LibAuto-NativeAaBootstrap")\n        workers += worker\n        worker.start()'
           if old_loop not in wc:
               raise SystemExit("Could not find RFCOMM bootstrap block")
