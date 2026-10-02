@@ -52,8 +52,8 @@ jobs:
           main.write_text(ms.replace(old, new, 1))
           controller = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt")
           wc = controller.read_text()
-          old_start = '        update("tcp_listening", "AA TCP listener ready on port $port; starting hotspot")\\n        startHotspotThenBluetooth(port)'
-          new_start = '        update("tcp_listening", "AA TCP listener ready on port $port; using existing Wi-Fi")\\n        startBluetoothServer(ssid = "EXISTING_WIFI", password = "", bssid = findWifiMacAddress(), port = port, dynamicAp = false)'
+          old_start = 'update("tcp_listening", "AA TCP listener ready on port $port; starting hotspot")\\n        startHotspotThenBluetooth(port)'
+          new_start = 'update("tcp_listening", "AA TCP listener ready on port $port; using existing Wi-Fi")\\n        startBluetoothServer(ssid = "EXISTING_WIFI", password = "", bssid = findWifiMacAddress(), port = port, dynamicAp = false)'
           if old_start not in wc:
               raise SystemExit("Could not find wireless hotspot start block")
           controller.write_text(wc.replace(old_start, new_start, 1))
