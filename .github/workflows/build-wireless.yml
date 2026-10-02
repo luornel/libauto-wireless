@@ -52,6 +52,13 @@ jobs:
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;25.1.8937393"
 
+      - name: Bootstrap vcpkg
+        working-directory: LibAuto
+        run: |
+          mkdir -p third_party
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git third_party/vcpkg
+          ./third_party/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+
       - name: Build installable compatibility debug APK
         working-directory: LibAuto
         run: |
