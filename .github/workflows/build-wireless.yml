@@ -53,7 +53,7 @@ jobs:
           controller = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt")
           wc = controller.read_text()
           old_bt = '        if (bondedDevices.isEmpty()) {'
-          diag_bt = '        for (device in bondedDevices) { try { logger("Wireless bonded device remote=" + safeRemoteName(device) + " type=" + device.type + " bond=" + device.bondState + " uuids=" + (device.uuids?.joinToString { it.uuid.toString() } ?: "none")); device.fetchUuidsWithSdp() } catch (ex: Exception) { logger("Wireless bonded device diagnostics failed remote=" + safeRemoteName(device) + ": " + ex.message) } }\\n'
+          diag_bt = '        for (device in bondedDevices) { try { val uuidText = device.uuids?.map { parcelUuid -> parcelUuid.uuid.toString() }?.joinToString() ?: "none"; logger("Wireless bonded device remote=" + safeRemoteName(device) + " type=" + device.type + " bond=" + device.bondState + " uuids=" + uuidText); device.fetchUuidsWithSdp() } catch (ex: Exception) { logger("Wireless bonded device diagnostics failed remote=" + safeRemoteName(device) + ": " + ex.message) } }\\n'
           if old_bt not in wc:
               raise SystemExit("Could not find bonded device block")
           controller.write_text(wc.replace(old_bt, diag_bt + old_bt, 1))
