@@ -56,7 +56,7 @@ jobs:
         working-directory: LibAuto
         run: |
           mkdir -p third_party
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git third_party/vcpkg
+          git clone https://github.com/microsoft/vcpkg.git third_party/vcpkg
           ./third_party/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
       - name: Build installable compatibility debug APK
