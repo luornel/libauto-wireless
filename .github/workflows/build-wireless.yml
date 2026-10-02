@@ -43,6 +43,20 @@ jobs:
           if needle not in ps:
               raise SystemExit("Could not find WirelessAa logger")
           service.write_text(ps.replace(needle, replacement, 1))
+          main = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/MainActivity.kt")
+          ms = main.read_text()
+          old = '                    wirelessStatusText.text = details'
+          new = '                    if (status == "diagnostic") { val previous = wirelessStatusText.text.toString(); val lines = (previous.lines() + details).filter { it.isNotBlank() }.takeLast(8); wirelessStatusText.text = lines.joinToString("\\n") } else { wirelessStatusText.text = details }'
+          if old not in ms:
+              raise SystemExit("Could not find wireless status UI")
+          main.write_text(ms.replace(old, new, 1))
+          controller = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt")
+          wc = controller.read_text()
+          old_bt = '        if (bondedDevices.isEmpty()) {'
+          diag_bt = '        for (device in bondedDevices) { try { logger("Wireless bonded device remote=" + safeRemoteName(device) + " type=" + device.type + " bond=" + device.bondState + " uuids=" + (device.uuids?.joinToString { it.uuid.toString() } ?: "none")); device.fetchUuidsWithSdp() } catch (ex: Exception) { logger("Wireless bonded device diagnostics failed remote=" + safeRemoteName(device) + ": " + ex.message) } }\\n'
+          if old_bt not in wc:
+              raise SystemExit("Could not find bonded device block")
+          controller.write_text(wc.replace(old_bt, diag_bt + old_bt, 1))
           p.write_text(s2)
           gradle.write_text(g2)
           print("Wireless card exposed; 32-bit ABI selected; diagnostics enabled.")
