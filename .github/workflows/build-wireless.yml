@@ -39,7 +39,7 @@ jobs:
           service = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/ProjectionService.kt")
           ps = service.read_text()
           needle = '            LogFileHelper.appendEvent(this, "WirelessAa", message)'
-          replacement = needle + '\n            sendBroadcast(IntentBuilder.wirelessStatus("diagnostic", message))'
+          replacement = needle + '\n            sendBroadcast(Intent(Constants.ACTION_WIRELESS_STATUS).apply { putExtra(Constants.EXTRA_STATUS, "diagnostic"); putExtra(Constants.EXTRA_WIRELESS_DETAILS, message) })'
           if needle not in ps:
               raise SystemExit("Could not find WirelessAa logger")
           service.write_text(ps.replace(needle, replacement, 1))
