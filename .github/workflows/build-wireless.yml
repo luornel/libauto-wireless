@@ -41,7 +41,7 @@ jobs:
           wc = controller.read_text()
           wc = wc.replace("logger(", "diagnostic(")
           update_anchor = "    private fun update(status: String, details: String) {"
-          diagnostic_fn = """    private val diagnosticHistory = ArrayDeque<String>()
+          diagnostic_fn = """    private val diagnosticHistory = java.util.ArrayDeque<String>()
 
     private fun diagnostic(message: String) {
         logger.invoke(message)
