@@ -70,9 +70,21 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git third_party/vcpkg
           ./third_party/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/vcpkg/archives
+          key: vcpkg-android-arm64-${{ runner.os }}-${{ hashFiles('LibAuto/native/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-android-arm64-${{ runner.os }}-
+
       - name: Build installable compatibility debug APK
         working-directory: LibAuto
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}/vcpkg-cache
         run: |
+          mkdir -p "$HOME/.cache/vcpkg/archives" "$VCPKG_DEFAULT_BINARY_CACHE"
+          export VCPKG_BINARY_SOURCES="clear;files,$HOME/.cache/vcpkg/archives,readwrite"
           chmod +x gradlew
           ./gradlew assembleCompatibilityDebug --stacktrace
 
