@@ -63,9 +63,9 @@ jobs:
             return
         }
 """
-          adapter_diag = adapter_anchor + """        val bonded = try { adapter.bondedDevices?.joinToString { safeRemoteName(it) } ?: "none" } catch (ex: Exception) { "unavailable: \${ex.message}" }
-        diagnostic("BT adapter OK; name=\${adapter.name}; address=\${adapter.address}; BLE=\${adapter.isMultipleAdvertisementSupported}; bonded=[\$bonded]")
-        diagnostic("Hotspot ssid=\$ssid ip=\${bestLocalIpAddress()}:\$port bssid=\$bssid dynamic=\$dynamicAp")
+          adapter_diag = adapter_anchor + """        val bonded = try { adapter.bondedDevices?.joinToString { safeRemoteName(it) } ?: "none" } catch (ex: Exception) { "unavailable: ${ex.message}" }
+        diagnostic("BT adapter OK; name=${adapter.name}; address=${adapter.address}; BLE=${adapter.isMultipleAdvertisementSupported}; bonded=[$bonded]")
+        diagnostic("Hotspot ssid=$ssid ip=${bestLocalIpAddress()}:$port bssid=$bssid dynamic=$dynamicAp")
 """
           if adapter_anchor not in wc:
               raise SystemExit("Could not find Bluetooth adapter validation block")
