@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - name: Checkout test repository
         uses: actions/checkout@v4
@@ -29,7 +30,11 @@ jobs:
           s2, n = re.subn(pat, r'\1\2visible\3', s, count=1)
           if n != 1:
               raise SystemExit("Could not find hidden wireless_card")
-          p.write_text(s2)
+          abi_pat = r'abiFilters\s+"armeabi-v7a",\s+"arm64-v8a"'
+          s3, n2 = re.subn(abi_pat, 'abiFilters "arm64-v8a"', s2, count=1)
+          if n2 != 1:
+              raise SystemExit("Could not narrow ABI filters for CI build")
+          p.write_text(s3)
           print("Wireless card exposed.")
 
       - name: Set up JDK 17
@@ -37,6 +42,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Locate Android SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
@@ -64,9 +70,21 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git third_party/vcpkg
           ./third_party/vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
+      - name: Restore vcpkg binary cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/vcpkg/archives
+          key: vcpkg-android-arm64-${{ runner.os }}-${{ hashFiles('LibAuto/native/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-android-arm64-${{ runner.os }}-
+
       - name: Build installable compatibility debug APK
         working-directory: LibAuto
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ runner.temp }}/vcpkg-cache
         run: |
+          mkdir -p "$HOME/.cache/vcpkg/archives" "$VCPKG_DEFAULT_BINARY_CACHE"
+          export VCPKG_BINARY_SOURCES="clear;files,$HOME/.cache/vcpkg/archives,readwrite"
           chmod +x gradlew
           ./gradlew assembleCompatibilityDebug --stacktrace
 
