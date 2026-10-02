@@ -51,31 +51,9 @@ jobs:
               raise SystemExit("Could not find WirelessAaController logger")
           service.write_text(ps.replace(old, new, 1))
 
-          # Add a Bluetooth snapshot when wireless starts. This only observes Android's
-          # Bluetooth stack; it does not alter the AA bootstrap protocol.
-          controller = Path("LibAuto/app/src/main/java/com/example/androidautodisplay/WirelessAaController.kt")
-          wc = controller.read_text()
-          bt_anchor = '''        if (adapter == null || !adapter.isEnabled) {
-            update("failed", "Bluetooth is off")
-            running.set(false)
-            return
-        }
-'''
-          bt_diag = bt_anchor + '''        try {
-            val devices = adapter.bondedDevices
-            logger("Android Bluetooth: adapter=" + adapter.name + "; bonded=" + devices.size)
-            devices.forEach { device ->
-                val uuids = device.uuids?.joinToString { it.uuid.toString() } ?: "none"
-                logger("Bonded device: " + safeRemoteName(device) + "; address=" + device.address +
-                    "; type=" + device.type + "; bond=" + device.bondState + "; UUIDs=" + uuids)
-            }
-        } catch (ex: Exception) {
-            logger("Bluetooth snapshot failed: " + ex.javaClass.simpleName + ": " + ex.message)
-        }
-'''
-          if bt_anchor not in wc:
-              raise SystemExit("Could not find Bluetooth validation block")
-          controller.write_text(wc.replace(bt_anchor, bt_diag, 1))
+          # Keep diagnostics passive here. The service logger above mirrors the
+          # controller's existing wireless events to the on-screen status without
+          # modifying WirelessAaController state or protocol behavior.
           p.write_text(s2)
           gradle.write_text(g2)
           print("Wireless card exposed; 32-bit ABI selected; diagnostics enabled.")
