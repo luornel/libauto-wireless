@@ -1,7 +1,11 @@
-# LibAuto Wireless Test
+# LibAuto Wireless
 
-Private test harness for building an experimental LibAuto APK with the existing Wireless Android Auto launcher card exposed.
+Projeto experimental desenvolvido com apoio do **ChatGPT**, com o objetivo de adaptar e aprimorar o **LibAuto** para utilizar Android Auto na minha central multimídia Android.
 
-The workflow checks out the upstream LibAuto source at build time, exposes the existing wireless UI, builds the compatibility/debug flavor, and publishes an installable APK as a GitHub Actions artifact.
+O foco principal é implementar a **conexão sem fio**, melhorar a compatibilidade, otimizar o desempenho e corrigir problemas de conexão.
 
-Upstream: stf-ftw/LibAuto (GPLv3). This repository is for private testing.
+O projeto utiliza **GitHub Actions** para automatizar a compilação e disponibilização dos APKs para testes.
+
+**Projeto original:** [stf-ftw/LibAuto](https://github.com/stf-ftw/LibAuto)  
+**Licença:** GPLv3  
+**Status:** Experimental — em desenvolvimento.
